@@ -1,0 +1,7 @@
+{
+  "env": false, "chaves": false, "reset": false, "force": false, "apagar": false,
+  "publicar": false, "repo": false, "deploy": true, "editar": true, "testes": true,
+  "extras": [
+    {"acao": "enviar e-mail para a lista de clientes", "volta": false, "regras": ["mcp__gmail__send_email"]}
+  ]
+}
