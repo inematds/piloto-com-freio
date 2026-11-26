@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Piloto com Freio: o Claude Code no automático, com freio no que não tem volta</title>
+<meta name="description" content="Kit grátis para o Claude Code: modo automático no que tem volta e regra de negação no que não tem, pelo teste da reversibilidade. Com 5 prompts prontos, hook de conferência e prova real. Baseado na palestra oficial da Anthropic.">
+<meta property="og:title" content="Piloto com Freio: você aprova cada comando do Claude ou liberou tudo e torce?">
+<meta property="og:description" content="Automático no que tem volta, freio no que não tem. Kit grátis no inema.club.">
+<meta property="og:image" content="https://inematds.github.io/piloto-com-freio/guia/assets/banner.jpg">
+<link rel="alternate" hreflang="pt-BR" href="https://inematds.github.io/piloto-com-freio/guia/">
+<link rel="alternate" hreflang="en" href="https://inematds.github.io/piloto-com-freio/guia/en/">
+<link rel="alternate" hreflang="es" href="https://inematds.github.io/piloto-com-freio/guia/es/">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0c0c10; --bg2:#14141b; --card:#16161e; --line:#272730;
+    --txt:#e9e9ee; --mut:#9a9aa6; --amb:#FACC15; --amb2:#f0c070; --sky:#38bdf8; --pro:#cbd5e1;
+    --fill:#FACC15; --tint:rgba(250,204,21,.12); --ok:#7CE0C6; --bad:#F0918A;
+    color-scheme:dark;
+  }
+  body.light{
+    --bg:#f6f7f9; --bg2:#eceef2; --card:#ffffff; --line:#e1e3ea;
+    --txt:#1a1a22; --mut:#5b5b68; --amb:#a16207; --amb2:#a16207; --sky:#0369a1; --pro:#b45309;
+    --fill:#FACC15; --tint:#FEF9C3; --ok:#0E6B55; --bad:#A83426;
+    color-scheme:light;
+  }
+  body.light .hero .glow{opacity:.5}
+  body.light pre{background:#0e0e14;color:#d6d6e0}
+  body.light pre .c{color:#8a8a98}
+  body.light pre .k{color:#f0c070}
+  body.light nav{background:rgba(246,247,249,.85)}
+  body.light .amb{color:var(--txt);background:linear-gradient(transparent 55%,#FACC15 55%)}
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--txt);font:16px/1.65 Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  h1,h2,h3{font-family:Sora,sans-serif;line-height:1.15;margin:0}
+  a{color:var(--amb);text-decoration:none}
+  body.light main a:not(.btn),body.light footer a{color:#854d0e;text-decoration:underline;text-decoration-color:#FACC15;text-decoration-thickness:3px}
+  code,pre{font-family:"JetBrains Mono",monospace}
+  p code,li code,td code{font-size:.9em;background:var(--bg2);border:1px solid var(--line);border-radius:6px;padding:.05em .35em;overflow-wrap:anywhere}
+  .wrap{max-width:1160px;margin:0 auto;padding:0 22px}
+  .mut{color:var(--mut)} .amb{color:var(--amb)}
+  .chip{display:inline-block;font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;color:var(--amb);font-weight:600;font-family:Sora}
+  nav{position:sticky;top:0;z-index:30;backdrop-filter:blur(12px);background:rgba(12,12,16,.78);border-bottom:1px solid var(--line)}
+  nav .wrap{display:flex;align-items:center;gap:22px;height:60px}
+  nav .brand{display:flex;align-items:center;gap:8px;font-family:Sora;font-weight:800;letter-spacing:-.02em;color:var(--amb);white-space:nowrap}
+  nav .brand .emoji{font-size:1.25rem}
+  nav .sep{color:var(--mut);opacity:.45}
+  nav .inema{color:var(--sky);font-weight:600;font-size:.88rem;font-family:Sora}
+  nav .inema:hover{filter:brightness(1.15)}
+  nav .pro{color:var(--pro);font-weight:600;font-size:.88rem;font-family:Sora}
+  nav .pro:hover{filter:brightness(1.15)}
+  nav .clubpro{display:inline-flex;align-items:center;gap:6px}
+  nav .links{margin-left:auto;display:flex;align-items:center;gap:20px;font-size:.92rem}
+  nav .links a.sec{color:var(--mut);white-space:nowrap} nav .links a.sec:hover{color:var(--txt)}
+  .lang{display:inline-flex;gap:2px;font-family:Sora;font-size:.78rem}
+  .lang a{color:var(--mut);padding:.2em .45em;border-radius:6px} .lang a.on{color:var(--amb);background:var(--tint)}
+  .tgl{background:var(--bg2);border:1px solid var(--line);color:var(--txt);width:38px;height:38px;border-radius:10px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:1.05rem}
+  .tgl:hover{border-color:var(--amb)}
+  .btn{display:inline-block;background:var(--fill);color:#1a1206;font-weight:600;padding:.6em 1.05em;border-radius:10px;font-family:Sora;border:none;cursor:pointer;font-size:.95rem}
+  .btn.ghost{background:transparent;color:var(--txt);border:1px solid var(--line)}
+  .btn.mini{padding:.4em .8em;font-size:.82rem}
+  @media(max-width:1280px){nav .links a.opt{display:none}}
+  @media(max-width:900px){nav .links a.sec{display:none}}
+  @media(max-width:520px){nav .wrap{gap:8px;padding:8px 14px;height:auto;flex-wrap:wrap} nav .links{gap:8px;margin-left:0;width:100%;justify-content:space-between} nav .btn{padding:.45em .7em;font-size:.82rem} .tgl{width:34px;height:34px}}
+  .hero{position:relative;overflow:hidden;border-bottom:1px solid var(--line)}
+  .hero .glow{position:absolute;inset:-40% -20% auto auto;width:70%;height:600px;background:radial-gradient(closest-side,rgba(250,204,21,.18),transparent 70%);pointer-events:none}
+  .hero .wrap{display:grid;grid-template-columns:1.05fr .95fr;grid-template-areas:"top f2" "bot f1";column-gap:40px;row-gap:28px;align-items:center;padding:64px 22px}
+  .h-top{grid-area:top;align-self:end}.h-bot{grid-area:bot;align-self:start}.hero .f1{grid-area:f1}.hero .f2{grid-area:f2}
+  .hero h1{font-size:clamp(2rem,4.4vw,3.1rem);font-weight:800;letter-spacing:-.025em;margin-top:.4em}
+  .hero p.lead{font-size:1.15rem;color:var(--mut);margin:0 0 1.6em;max-width:46ch}
+  .hero .cta{display:flex;gap:12px;flex-wrap:wrap}
+  .hero figure{margin:0;border-radius:16px;overflow:hidden;border:1px solid var(--line);box-shadow:0 30px 80px -30px #000;min-width:0}
+  .hero figure img{width:100%;height:auto;display:block}
+  @media(max-width:780px){.hero .wrap{grid-template-columns:1fr;grid-template-areas:"top" "f2" "bot" "f1";padding:40px 22px}}
+  .resumo{padding:38px 0 34px;border-bottom:1px solid var(--line)}
+  .resumo p{font-size:1.12rem;line-height:1.7;max-width:74ch;margin:.55em 0 0}
+  section{padding:62px 0;border-bottom:1px solid var(--line)}
+  section h2{font-size:clamp(1.5rem,3.4vw,2.1rem);font-weight:800;letter-spacing:-.02em}
+  section .sub{color:var(--mut);margin:.6em 0 2em;max-width:66ch}
+  .grid{display:grid;gap:16px}
+  .g3{grid-template-columns:repeat(3,1fr)} .g2{grid-template-columns:repeat(2,1fr)}
+  @media(max-width:820px){.g3{grid-template-columns:1fr 1fr}}
+  @media(max-width:600px){.g2,.g3{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;min-width:0}
+  .card h3{font-size:1.05rem;margin-bottom:.4em}
+  .card p{color:var(--mut);font-size:.95rem;margin:0}
+  .card p+p{margin-top:.6em}
+  .card ul{margin:8px 0 0;padding-left:20px;color:var(--mut);font-size:.95rem}.card li{margin:5px 0}
+  pre{background:#0a0a0e;border:1px solid var(--line);border-radius:12px;padding:14px 16px;overflow:auto;font-size:.84rem;line-height:1.55;color:#d6d6e0;margin:.5em 0 0;max-width:100%;white-space:pre}
+  pre.wrapme{white-space:pre-wrap;overflow-wrap:anywhere}
+  pre .c{color:#7d7d8a} pre .k{color:var(--amb2)} pre .s{color:#9ece6a} pre .r{color:#F0918A}
+  .step{display:grid;grid-template-columns:46px minmax(0,1fr);gap:16px;margin-bottom:30px}
+  .step>div{min-width:0}
+  .step .b{width:46px;height:46px;border-radius:12px;background:var(--fill);color:#1a1206;font-family:Sora;font-weight:800;font-size:1.25rem;display:flex;align-items:center;justify-content:center}
+  .step h3{font-size:1.12rem;margin-bottom:.3em}
+  .step p{color:var(--mut);margin:.2em 0 .5em}
+  .lbl{display:block;font-family:Sora;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);margin:.9em 0 .1em}
+  footer{padding:46px 0;text-align:center;color:var(--mut);font-size:.9rem}
+  .pill{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:.3em .8em;font-size:.78rem;color:var(--mut);margin:4px}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:6px}
+  @media(max-width:720px){.stats{grid-template-columns:1fr}}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px}
+  .stat b{display:block;font:800 clamp(1.9rem,4vw,2.6rem)/1.05 Sora,sans-serif;letter-spacing:-.02em;color:var(--amb)}
+  body.light .stat b{color:var(--txt)}
+  .stat span{display:block;color:var(--mut);font-size:.93rem;margin-top:.5em}
+  .fonte{font-size:.86rem;color:var(--mut);margin-top:14px;max-width:80ch}
+  /* trocas */
+  .troca{display:grid;grid-template-columns:56px minmax(0,1fr);gap:18px;padding:24px 0;border-top:1px solid var(--line)}
+  .troca:first-of-type{border-top:none}
+  .troca .n{width:56px;height:56px;border-radius:14px;border:1px solid var(--line);background:var(--card);display:flex;align-items:center;justify-content:center;font:800 1.5rem Sora,sans-serif;color:var(--amb)}
+  body.light .troca .n{color:var(--txt);background:var(--fill);border-color:var(--fill)}
+  .troca h3{font-size:1.25rem;margin-bottom:.6em}
+  .av{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:600px){.av{grid-template-columns:1fr}.troca{grid-template-columns:1fr}}
+  .av div{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 16px;font-size:.95rem;min-width:0}
+  .av .antes{border-left:3px solid var(--bad)} .av .agora{border-left:3px solid var(--ok)}
+  .av b{display:block;font-family:Sora;font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;margin-bottom:.3em}
+  .av .antes b{color:var(--bad)} .av .agora b{color:var(--ok)}
+  .nokit{margin-top:10px;font-size:.92rem;color:var(--mut)} .nokit strong{color:var(--txt)}
+  /* reversibilidade */
+  .pergunta{background:var(--card);border:1px solid var(--amb);border-radius:16px;padding:22px 24px;font:700 clamp(1.2rem,2.6vw,1.6rem)/1.3 Sora,sans-serif;text-align:center;margin:0 0 22px}
+  body.light .pergunta{border-color:#EAB308}
+  .card.sim{border-top:3px solid var(--ok)} .card.nao{border-top:3px solid var(--bad)} .card.dep{border-top:3px solid var(--amb)}
+  .tag{display:inline-block;font:700 .72rem Sora;letter-spacing:.1em;text-transform:uppercase;border-radius:6px;padding:.15em .55em;margin-bottom:.6em}
+  .sim .tag{background:rgba(124,224,198,.15);color:var(--ok)} .nao .tag{background:rgba(240,145,138,.15);color:var(--bad)} .dep .tag{background:var(--tint);color:var(--amb)}
+  /* prompts */
+  .prm{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;min-width:0}
+  .prm .hd{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  .prm h3{font-size:1.05rem}
+  .prm p{color:var(--mut);font-size:.93rem;margin:.4em 0 0}
+  /* prova */
+  .prova{background:var(--card);border:1px solid var(--amb);border-radius:16px;padding:24px 24px 20px}
+  body.light .prova{border-color:#EAB308}
+  blockquote{margin:10px 0 0;padding:14px 18px;border-left:3px solid var(--fill);background:var(--bg2);border-radius:0 10px 10px 0;font-size:1.02rem}
+  .faq details{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin-bottom:10px}
+  .faq summary{cursor:pointer;font-family:Sora;font-weight:600}
+  .faq details p{color:var(--mut);margin:.6em 0 0}
+  .fecho{margin-top:28px;font:700 clamp(1.15rem,2.4vw,1.45rem)/1.35 Sora,sans-serif;max-width:60ch}
+  .fecho span{display:block;font:400 1rem/1.6 Inter,sans-serif;color:var(--mut);margin-top:.5em}
+  .videobox{aspect-ratio:16/9;max-width:860px;border:1px dashed var(--line);border-radius:16px;background:var(--card);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;text-align:center;padding:20px}
+  .videobox b{font:800 1.4rem Sora,sans-serif}
+  .videobox span{color:var(--mut);font-size:.95rem;max-width:46ch}
+</style>
+</head>
+<body>
+
+<nav><div class="wrap">
+  <a class="brand" href="#top"><span class="emoji">🛑</span> Piloto com Freio</a>
+  <span class="sep">|</span>
+  <span class="clubpro">
+    <a class="inema" href="https://inema.club" target="_blank" rel="noopener">INEMA.CLUB</a>
+    <span class="sep">-</span>
+    <a class="pro" href="https://inema.pro" target="_blank" rel="noopener">PRO</a>
+  </span>
+  <div class="links">
+    <a class="sec" href="#trocas">As 5 trocas</a>
+    <a class="sec" href="#reversibilidade">Reversibilidade</a>
+    <a class="sec" href="#comecar">Como começar</a>
+    <a class="sec opt" href="#prompts">Prompts</a>
+    <a class="sec opt" href="#base">Base</a>
+    <a class="sec" href="#prova">A prova</a>
+    <span class="lang"><a class="on" href="./">PT</a><a href="en/">EN</a><a href="es/">ES</a></span>
+    <button class="tgl" id="themeToggle" aria-label="Alternar tema" title="Alternar tema">🌙</button>
+    <a class="btn" href="https://github.com/inematds/piloto-com-freio" target="_blank" rel="noopener">GitHub</a>
+  </div>
+</div></nav>
+
+<header class="hero" id="top">
+  <div class="glow"></div>
+  <div class="wrap">
+    <div class="h-top">
+      <span class="chip">Kit grátis · Claude Code · baseado na palestra oficial da Anthropic</span>
+      <h1>Você aprova cada comando do Claude ou liberou tudo e torce? Use o <span class="amb">Piloto com Freio</span>.</h1>
+    </div>
+    <figure class="f2"><img src="assets/banner.jpg" alt="Piloto com Freio: automático no que tem volta, freio no que não tem"></figure>
+    <div class="h-bot">
+      <p class="lead">O Claude trabalha sozinho em tudo que dá para desfazer e para de vez no que não dá: apagar uma pasta, ler o arquivo de senhas, mandar e-mail para a lista inteira. Você para de clicar "sim" o dia todo e também para de torcer.</p>
+      <div class="cta">
+        <a class="btn" href="#trocas">As 5 trocas</a>
+        <a class="btn ghost" href="#comecar">Como começar</a>
+      </div>
+    </div>
+    <figure class="f1"><img src="assets/hero.jpg" alt="Piloto de capacete num carro de corrida, fazendo a curva na pista"></figure>
+  </div>
+</header>
+
+<main>
+<section id="resumo" class="resumo"><div class="wrap">
+  <span class="chip">Em resumo</span>
+  <p><strong>Liberar tudo é rápido até o dia em que a IA apaga o que não devia. Aprovar tudo é seguro, mas cansa, e quem cansa aprova sem ler.</strong> O Piloto com Freio é um kit gratuito para quem usa o Claude Code, a IA da Anthropic que trabalha dentro do seu computador. Ele deixa o Claude no modo automático (um verificador aprova o que é seguro e para o que é arriscado) e põe uma regra de negação, um bloqueio fixo, em tudo que não tem volta. Traz também 5 prompts prontos para o Claude provar que terminou e um hook (um comando que o Claude Code roda sozinho num momento combinado) que confere o trabalho antes de ele parar. Precisa do Claude Code e do Python 3.9 ou mais novo; não instala nada. É baseado na palestra oficial <a href="#base">"Rethinking Claude Code Best Practices"</a>, da Anthropic.</p>
+</div></section>
+
+<section id="base"><div class="wrap">
+  <span class="chip">Por que agora · de onde vem</span>
+  <h2>O modo automático pega muito. <span class="amb">Não pega tudo.</span></h2>
+  <p class="sub">Os números são da própria Anthropic, na palestra "Rethinking Claude Code Best Practices", de Lydia Hallie, no AI Engineer (12/11/2026).</p>
+  <div class="stats">
+    <div class="stat"><b>~14%</b><span>dos comandos claramente perigosos foram pegos por pessoas aprovando à mão, no teste da Anthropic (agosto). Quem aprova o dia todo deixa passar.</span></div>
+    <div class="stat"><b>89%</b><span>desses comandos o modo automático bloqueou no mesmo teste. Muito melhor que a pessoa cansada.</span></div>
+    <div class="stat"><b>~1 em 10</b><span>ainda passou. Por isso o que não tem volta vai numa regra de negação: se a chamada casa com ela, o verificador nem chega a ver.</span></div>
+  </div>
+  <div class="grid g2" style="margin-top:16px">
+    <div class="card"><h3>🎤 A fonte</h3><p>Palestra oficial da Anthropic, com a equipe que faz o Claude Code. Na mesma fala: a Anthropic passou de cerca de 2.500 mudanças de código por dia (maio) para mais de 30.000 por dia (setembro). Nesse volume, ninguém aprova comando por comando.</p><p><a class="btn ghost mini" href="https://www.youtube.com/watch?v=vlfCjWuv4es" target="_blank" rel="noopener">Ver a palestra no YouTube</a></p></div>
+    <div class="card"><h3>🧩 O que o kit tirou dela</h3><ul><li>modo automático + regra de negação → <code>auditar</code>, <code>entrevista</code>, <code>aplicar</code>, <code>testar</code></li><li>instruções sem grito → <code>auditar</code> aponta as linhas</li><li>pronto em 3 itens e revisor separado → prompts <code>pronto</code> e <code>revisor</code></li><li>"o que tem de rodar sempre vai em hook" → <code>hooks/</code></li><li>sessão principal que distribui → prompt <code>orquestrador</code></li></ul><p>O prompt <code>advisor</code> é dica do kit, não da palestra.</p></div>
+  </div>
+</div></section>
+
+<section id="trocas"><div class="wrap">
+  <span class="chip">O que muda</span>
+  <h2>As 5 trocas: <span class="amb">antes × agora</span></h2>
+  <p class="sub">O jeito de trabalhar com o Claude Code mudou com os modelos novos. Cada troca vem com a peça do kit que faz ela por você.</p>
+  <figure style="margin:0 0 22px;border-radius:16px;overflow:hidden;border:1px solid var(--line);box-shadow:0 30px 80px -30px #000"><img src="assets/banner-grade.jpg" alt="Piloto com Freio: as 5 trocas, o teste da reversibilidade, o passo a passo, 5 prompts prontos, o hook de conferência e a prova real" loading="lazy" style="width:100%;display:block"></figure>
+
+  <div class="troca"><div class="n">1</div><div>
+    <h3>Instruções sem grito</h3>
+    <div class="av"><div class="antes"><b>Antes</b>Corrigir o Claude o tempo todo e escrever IMPORTANTE, NUNCA, OBRIGATÓRIO em maiúsculas para ele obedecer.</div><div class="agora"><b>Agora</b>O modelo atual (Opus 5.5) entende a intenção e segue o combinado. O grito antigo tira ele do rumo e encolhe a resposta.</div></div>
+    <p class="nokit"><strong>No kit:</strong> <code>freio.py auditar</code> acha as linhas que gritam no seu CLAUDE.md e nas skills e indica o <code>/doctor prompt-audit</code> do Claude Code, que propõe a limpeza com a sua aprovação. A Anthropic recomenda o Opus 5.5 em esforço médio.</p>
+  </div></div>
+
+  <div class="troca"><div class="n">2</div><div>
+    <h3>Parar de aprovar cada comando</h3>
+    <div class="av"><div class="antes"><b>Antes</b>Aprovar tudo à mão, ou desligar a proteção de vez com <code>--dangerously-skip-permissions</code>.</div><div class="agora"><b>Agora</b>Modo automático (<code>--permission-mode auto</code>): um verificador aprova o seguro e para o arriscado. Virou o padrão.</div></div>
+    <p class="nokit"><strong>No kit:</strong> <code>auditar</code> mostra em que modo você está e avisa se está tudo liberado.</p>
+  </div></div>
+
+  <div class="troca"><div class="n">3</div><div>
+    <h3>Freio no que não tem volta</h3>
+    <div class="av"><div class="antes"><b>Antes</b>Torcer para não dar errado.</div><div class="agora"><b>Agora</b>Uma regra de negação no <code>.claude/settings.json</code> (o arquivo de configuração do Claude Code dentro do seu projeto) bloqueia de vez. Exemplo da Anthropic: <code>"deny": ["Read(./.env)", "Read(./.env.*)"]</code>.</div></div>
+    <p class="nokit"><strong>No kit:</strong> <code>entrevista</code> faz o teste da reversibilidade, <code>aplicar</code> grava as regras (com cópia do arquivo anterior) e <code>testar</code> confere.</p>
+  </div></div>
+
+  <div class="troca"><div class="n">4</div><div>
+    <h3>"Terminei" só com prova</h3>
+    <div class="av"><div class="antes"><b>Antes</b>O Claude diz "terminei" e você acredita, ou confere tudo sozinho.</div><div class="agora"><b>Agora</b>Pronto definido, uma checagem por tarefa e a saída real de cada uma. E quem confere é uma sessão nova, que não fez o trabalho.</div></div>
+    <p class="nokit"><strong>No kit:</strong> prompts <code>pronto</code> e <code>revisor</code>, e o hook <code>conferir-antes-de-parar.sh</code>, porque prompt não é garantia: o que tem de rodar sempre vai em hook. Na palestra, a revisão segue o risco: erro de digitação, um agente revisa; o que afeta cliente, uma pessoa; dinheiro ou jurídico, mais de uma pessoa.</p>
+  </div></div>
+
+  <div class="troca"><div class="n">5</div><div>
+    <h3>Uma sessão que distribui o trabalho</h3>
+    <div class="av"><div class="antes"><b>Antes</b>Abrir 8 sessões à mão e ficar conversando com cada uma.</div><div class="agora"><b>Agora</b>Uma sessão principal (orquestradora) divide o pedido, abre as outras, confere o que volta e devolve o que não está pronto.</div></div>
+    <p class="nokit"><strong>No kit:</strong> prompt <code>orquestrador</code>. Alternativa mais barata, dica do kit: prompt <code>advisor</code>, em que o modelo que trabalha consulta um modelo mais forte nos momentos de decisão.</p>
+  </div></div>
+</div></section>
+
+<section id="reversibilidade"><div class="wrap">
+  <span class="chip">O teste da reversibilidade</span>
+  <h2>Uma pergunta decide <span class="amb">onde vai o freio</span></h2>
+  <p class="sub">Você não precisa saber de segurança. Para cada tipo de ação que o Claude faz por você, responda só isto:</p>
+  <div class="pergunta">"Se o Claude errar uma vez, dá para desfazer?"</div>
+  <div class="grid g3">
+    <div class="card sim"><span class="tag">Sim · automático</span><h3>Segue sem perguntar</h3><ul><li>editar arquivos do projeto (o git desfaz)</li><li>rodar testes e build (não muda nada fora da máquina)</li></ul></div>
+    <div class="card nao"><span class="tag">Não · regra de negação</span><h3>Bloqueado de vez</h3><ul><li>ler arquivo de senha (<code>.env</code>), chaves e certificados</li><li>descartar trabalho não salvo (<code>git reset --hard</code>)</li><li>reescrever o histórico do servidor (<code>git push --force</code>)</li><li>apagar pasta inteira (<code>rm -rf</code>)</li><li>publicar pacote, apagar repositório</li><li>mandar e-mail para a lista inteira de clientes</li></ul></div>
+    <div class="card dep"><span class="tag">Depende · você decide</span><h3>Tem como voltar?</h3><p>Mandar direto para produção (<code>vercel --prod</code>, <code>wrangler deploy</code>): se o seu serviço tem rollback (voltar à versão anterior com um clique), pode ficar no automático. Se não tem, vai para o freio.</p></div>
+  </div>
+  <p class="fonte">Por que a senha está no "não": depois que ela entra na conversa, não dá para tirar de lá. Chave vazada tem de ser trocada em todo lugar. No terminal não tem lixeira.</p>
+</div></section>
+
+<section id="video"><div class="wrap">
+  <span class="chip">Vídeo</span>
+  <h2>Entenda em poucos minutos</h2>
+  <!-- VIDEO: entra o explicavideo do projeto quando publicado -->
+  <div class="videobox" style="margin-top:18px"><b>🎬 Vídeo em breve</b><span>O vídeo explicativo do Piloto com Freio está em produção e entra aqui quando for publicado. Enquanto isso, o passo a passo está logo abaixo.</span></div>
+</div></section>
+
+<section id="comecar"><div class="wrap">
+  <span class="chip">Como começar</span>
+  <h2>Dois jeitos: <span class="amb">pedir para a IA</span> ou rodar você mesmo</h2>
+  <p class="sub">O que você precisa: o Claude Code instalado (pela sua assinatura) e o Python 3.9 ou mais novo, que já vem na maioria dos computadores com Linux e Mac. O kit é grátis e não instala nada. Testado no Linux com Python 3.12 e Claude Code 2.1.332, em 26/11/2026.</p>
+
+  <div class="card" style="border-color:var(--amb)">
+    <h3>🤖 Jeito 1: cole este pedido no Claude Code, aberto no seu projeto</h3>
+    <p>A IA lê o kit, olha o seu projeto, explica em linguagem simples e não muda nada antes do seu sim.</p>
+<pre class="wrapme" id="pedidoTxt">Leia o repositório https://github.com/inematds/piloto-com-freio (README, freio.py e a pasta prompts/).
+1. Baixe o kit e rode: python3 freio.py auditar --projeto &lt;a pasta deste projeto&gt;
+   Me explique em linguagem simples o que está liberado hoje e o que ainda não tem freio.
+2. Faça comigo o teste da reversibilidade (prompts/entrevista.md): para cada tipo de ação,
+   me pergunte se dá para desfazer caso você erre uma vez. Poucas perguntas por vez.
+3. Grave as minhas respostas num regras.json e me mostre a prévia com freio.py aplicar (sem --sim).
+4. Não grave nada no .claude/settings.json antes do meu sim. Depois do sim, rode aplicar --sim
+   e confira com freio.py testar, me mostrando a saída real de cada comando.</pre>
+    <button class="btn" data-copy="pedidoTxt" style="margin-top:10px">Copiar o pedido</button>
+  </div>
+
+  <h3 style="margin:40px 0 6px;font-size:1.3rem">💻 Jeito 2: o passo a passo, com a saída real</h3>
+  <p class="mut" style="margin:0 0 24px;max-width:70ch">Rodamos estes comandos de verdade num projeto de teste com o modo automático ligado e um CLAUDE.md com a linha "IMPORTANTE: NUNCA apague a pasta dados." O que aparece embaixo de cada comando é o que o terminal devolveu. Rode tudo de dentro da pasta do kit e troque <code>~/meu-projeto</code> pelo caminho da pasta do seu projeto.</p>
+
+  <div class="step"><div class="b">1</div><div>
+    <h3>Baixe o kit</h3>
+    <p>Uma pasta pequena, sem dependências.</p>
+<pre><span class="k">git clone</span> https://github.com/inematds/piloto-com-freio <span class="k">&amp;&amp;</span> <span class="k">cd</span> piloto-com-freio</pre>
+    <p style="margin-top:.6em">Sem git? <a href="https://github.com/inematds/piloto-com-freio/archive/refs/heads/main.zip">Baixe o ZIP</a>.</p>
+  </div></div>
+
+  <div class="step"><div class="b">2</div><div>
+    <h3>Veja como está hoje</h3>
+    <p>Mostra o modo de permissão, quantas regras de negação existem e o que ainda está sem freio.</p>
+<pre><span class="k">python3 freio.py auditar</span> --projeto ~/meu-projeto
+<span class="c">Piloto com Freio 0.1.0 — auditoria
+(…linhas com o caminho de cada settings.json…)</span>
+Modo de permissão padrão: auto
+  ok: modo automático. Ele bloqueia a maioria, não tudo: o irreversível vai na lista de negação.
+
+Regras de negação ativas: 0
+  <span class="r">[FALTA]</span> ler arquivos de senha (.env)
+  <span class="r">[FALTA]</span> ler chaves e certificados (*.pem, *.key, id_rsa)
+  <span class="r">[FALTA]</span> descartar trabalho não salvo (git reset --hard, git clean)
+  <span class="r">[FALTA]</span> reescrever o histórico do servidor (git push --force)
+  <span class="r">[FALTA]</span> apagar pastas inteiras (rm -rf)
+  <span class="r">[FALTA]</span> publicar pacote (npm publish, twine upload)
+  <span class="r">[FALTA]</span> apagar repositório no GitHub
+
+7 ação(ões) sem volta ainda sem freio. Rode: python3 freio.py entrevista
+
+Linhas que gritam (IMPORTANTE, NUNCA, !!!): 1
+  CLAUDE.md:2: IMPORTANTE: NUNCA apague a pasta dados.
+  Modelo novo não precisa de grito. No Claude Code: /doctor prompt-audit (revisa com a sua aprovação).</pre>
+  </div></div>
+
+  <div class="step"><div class="b">3</div><div>
+    <h3>Faça o teste da reversibilidade</h3>
+    <p>Sem <code>--respostas</code>, ele pergunta item por item ("dá para desfazer? [s/n/pular]"). Aqui usamos as respostas de exemplo do kit, que acrescentam "enviar e-mail para a lista de clientes".</p>
+<pre><span class="k">python3 freio.py entrevista</span> --respostas exemplos/respostas.json --saida regras.json
+<span class="c">Teste da reversibilidade: se o Claude errar uma vez, dá para desfazer?
+Sim → fica no modo automático.  Não → vai para a lista de negação.</span>
+
+Resultado:
+           NEGAR  ler arquivos de senha (.env)
+           NEGAR  ler chaves e certificados (*.pem, *.key, id_rsa)
+           NEGAR  descartar trabalho não salvo (git reset --hard, git clean)
+           NEGAR  reescrever o histórico do servidor (git push --force)
+           NEGAR  apagar pastas inteiras (rm -rf)
+           NEGAR  publicar pacote (npm publish, twine upload)
+           NEGAR  apagar repositório no GitHub
+      automático  mandar para produção direto (vercel --prod, wrangler deploy)
+      automático  editar arquivos do projeto (com git)
+      automático  rodar testes e build
+           NEGAR  enviar e-mail para a lista de clientes
+
+Regras gravadas em regras.json. Próximo: python3 freio.py aplicar --projeto &lt;pasta&gt; --de regras.json</pre>
+  </div></div>
+
+  <div class="step"><div class="b">4</div><div>
+    <h3>Veja a prévia e grave</h3>
+    <p>Sem <code>--sim</code> nada é gravado. Com <code>--sim</code>, ele junta as regras às que você já tem (não apaga nenhuma) e guarda uma cópia do arquivo anterior.</p>
+<pre><span class="k">python3 freio.py aplicar</span> --projeto ~/meu-projeto --de regras.json
+<span class="c">…/meu-projeto/.claude/settings.json</span>
+  já tem 0 regra(s); entram 18:
+    + Bash(cargo publish*)
+    + Bash(gh repo delete*)
+    + Bash(git checkout -- *)
+    + Bash(git clean -f*)
+    + Bash(git push * --force*)
+    + Bash(git push --force*)
+    + Bash(git push -f*)
+    + Bash(git reset --hard *)
+    + Bash(npm publish*)
+    + Bash(rm -fr *)
+    + Bash(rm -rf *)
+    + Bash(twine upload*)
+    + Read(./**/*.key)
+    + Read(./**/*.pem)
+    + Read(./.env)
+    + Read(./.env.*)
+    + Read(~/.ssh/**)
+    + mcp__gmail__send_email
+
+(prévia) Nada foi gravado. Repita com --sim para gravar (uma cópia do arquivo fica ao lado).
+
+<span class="k">python3 freio.py aplicar</span> --projeto ~/meu-projeto --de regras.json <span class="k">--sim</span>
+<span class="c">(…a mesma lista…)</span>
+  cópia: …/meu-projeto/.claude/settings.json.antes-freio-20261126-013434
+  gravado. Confira com: python3 freio.py testar 'Bash(git reset --hard HEAD)' --projeto …/meu-projeto</pre>
+  </div></div>
+
+  <div class="step"><div class="b">5</div><div>
+    <h3>Confira se o freio pega</h3>
+    <p>Você escreve a chamada como o Claude faria e ele diz se uma regra barra.</p>
+<pre><span class="k">python3 freio.py testar</span> 'Bash(git reset --hard HEAD)' --projeto ~/meu-projeto
+BARRADA  Bash(git reset --hard HEAD)
+  pela regra: Bash(git reset --hard *)
+
+<span class="k">python3 freio.py testar</span> 'Read(./.env)' --projeto ~/meu-projeto
+BARRADA  Read(./.env)
+  pela regra: Read(./.env)
+
+<span class="k">python3 freio.py testar</span> 'Bash(python3 -m pytest)' --projeto ~/meu-projeto
+PASSA    Bash(python3 -m pytest)
+  nenhuma regra de negação casa; o modo automático é quem decide</pre>
+    <p style="margin-top:.6em">O <code>testar</code> é uma aproximação das regras do Claude Code. A prova de verdade é pedir ao próprio Claude: veja <a href="#prova">a prova real</a>.</p>
+  </div></div>
+
+  <div class="step"><div class="b">6</div><div>
+    <h3>Rode a auditoria de novo</h3>
+<pre><span class="k">python3 freio.py auditar</span> --projeto ~/meu-projeto
+<span class="c">(…)</span>
+Regras de negação ativas: 18
+  <span class="s">[ok ]</span> ler arquivos de senha (.env)
+  <span class="s">[ok ]</span> ler chaves e certificados (*.pem, *.key, id_rsa)
+  <span class="s">[ok ]</span> descartar trabalho não salvo (git reset --hard, git clean)
+  <span class="s">[ok ]</span> reescrever o histórico do servidor (git push --force)
+  <span class="s">[ok ]</span> apagar pastas inteiras (rm -rf)
+  <span class="s">[ok ]</span> publicar pacote (npm publish, twine upload)
+  <span class="s">[ok ]</span> apagar repositório no GitHub</pre>
+    <p style="margin-top:.6em">Se no seu caso aparecer "não definido" ou o alerta de tudo liberado, ligue o modo automático: abra o Claude Code com <code>claude --permission-mode auto</code> ou ponha <code>"defaultMode": "auto"</code> dentro de <code>"permissions"</code> no <code>.claude/settings.json</code>.</p>
+    <p style="margin-top:.6em">A linha que grita no CLAUDE.md continua lá até você limpar: o kit aponta, quem decide é você (ou o <code>/doctor prompt-audit</code>, com a sua aprovação).</p>
+  </div></div>
+</div></section>
+
+<section id="prompts"><div class="wrap">
+  <span class="chip">Os 5 prompts</span>
+  <h2>Prontos para <span class="amb">copiar e colar</span></h2>
+  <p class="sub">Cole no Claude Code no começo (ou no fim) de uma tarefa. Também saem no terminal com <code>python3 freio.py prompt &lt;nome&gt;</code>.</p>
+  <div class="grid g2">
+    <div class="prm"><div class="hd"><h3>✅ pronto: "terminei" com prova</h3><button class="btn mini" data-copy="p-pronto">Copiar</button></div><p>Cole no começo de uma tarefa grande.</p>
+<pre class="wrapme" id="p-pronto">Antes de começar, três combinados:
+1. Pronto é: &lt;descreva em palavras simples como fica o trabalho terminado&gt;.
+2. Divida o trabalho em tarefas, e cada tarefa tem a sua própria checagem (um teste, um comando, uma conferência).
+3. Para cada checagem, me mostre a saída real (o que o comando devolveu), porque eu não estava olhando quando você rodou.
+Só diga que terminou quando todas as checagens passarem.</pre></div>
+    <div class="prm"><div class="hd"><h3>🔍 revisor: quem fez não confere</h3><button class="btn mini" data-copy="p-revisor">Copiar</button></div><p>Cole quando o trabalho estiver feito.</p>
+<pre class="wrapme" id="p-revisor">Quando terminar, não confira o próprio trabalho. Abra um agente revisor separado, numa sessão nova que não viu a nossa conversa.
+Passe para ele só: o pedido original, o resultado e a lista do que é "pronto". Nada do seu raciocínio.
+Ele devolve aprovado ou reprovado, com o motivo. Reprovado: corrija e mande revisar de novo.</pre></div>
+    <div class="prm"><div class="hd"><h3>🧭 orquestrador: uma sessão distribui</h3><button class="btn mini" data-copy="p-orq">Copiar</button></div><p>Para pedido grande, com várias partes independentes.</p>
+<pre class="wrapme" id="p-orq">Você é a sessão principal (orquestradora). Você não escreve o código.
+1. Divida o pedido em tarefas independentes.
+2. Abra uma sessão para cada tarefa, com o pedido, o que é "pronto" e a checagem dela.
+3. Acompanhe o que volta. Confira cada resultado contra o "pronto".
+4. O que não estiver pronto volta para a sessão com o motivo.
+5. Me chame só para decisão que não tem volta ou que é de negócio.
+Modelo sugerido: um que decide e julga bem na principal; um que executa bem nas tarefas.</pre></div>
+    <div class="prm"><div class="hd"><h3>🧑‍🏫 advisor: conselheiro mais forte</h3><button class="btn mini" data-copy="p-adv">Copiar</button></div><p>Dica do kit, não da palestra.</p>
+<pre class="wrapme" id="p-adv">(Alternativa mais barata ao orquestrador com modelo caro.)
+No Claude Code, rode /advisor e escolha um modelo mais forte como conselheiro.
+O modelo que trabalha consulta o conselheiro em três momentos:
+- antes de se comprometer com uma abordagem;
+- quando travar no mesmo problema;
+- antes de dizer que terminou.</pre></div>
+    <div class="prm" style="grid-column:1/-1"><div class="hd"><h3>🛑 entrevista: o teste da reversibilidade pela IA</h3><button class="btn mini" data-copy="p-ent">Copiar</button></div><p>O Claude faz as perguntas e monta as regras com você, sem mudar nada antes de mostrar a lista.</p>
+<pre class="wrapme" id="p-ent">Me entreviste para montar as camadas de confiança deste projeto.
+- Faça poucas perguntas por vez sobre o trabalho que você faz para mim.
+- Separe cada tipo de ação com uma pergunta só: se você errar uma vez, dá para desfazer?
+- Se dá para desfazer, siga sem me perguntar (modo automático).
+- Se não dá (mandar e-mail para a lista inteira, apagar uma pasta, ler arquivo de senha), bloqueie com uma regra de negação em .claude/settings.json, para que nunca aconteça sem o meu ok.
+Me mostre a lista completa antes de mudar qualquer configuração.</pre></div>
+  </div>
+</div></section>
+
+<section id="hook"><div class="wrap">
+  <span class="chip">O hook</span>
+  <h2>O que tem de rodar sempre <span class="amb">não fica só no prompt</span></h2>
+  <p class="sub">Um hook é um comando que o Claude Code roda sozinho num momento combinado. Este roda quando o Claude vai parar: faz a checagem do projeto (testes, build) e, se falhar, devolve o erro e o Claude continua trabalhando.</p>
+  <div class="grid g2">
+    <div class="card"><h3>1. Copie o hook para o seu projeto e ligue</h3>
+      <p>De dentro da pasta do kit, copie a pasta <code>hooks/</code> para o seu projeto:</p>
+<pre><span class="k">cp -r</span> hooks ~/meu-projeto/</pre>
+      <p style="margin-top:.8em">Depois, no <code>.claude/settings.json</code> do projeto, junto de <code>"permissions"</code>, ponha a checagem do seu projeto no lugar de <code>npm test</code> (os testes, o build ou o que você roda para conferir):</p>
+<pre class="wrapme">"hooks": {"Stop": [{"hooks": [{"type": "command", "command": "CHECAGEM='npm test' bash hooks/conferir-antes-de-parar.sh"}]}]}</pre>
+      <p style="margin-top:.8em">Sem <code>CHECAGEM</code>, ele roda os testes em Python (<code>python3 -m unittest discover -s tests -q</code>). Se o projeto não tem nenhuma checagem ainda, peça ao Claude para criar uma antes de ligar o hook. Se o Claude já está continuando por causa do hook, ele deixa parar, para não entrar em laço.</p></div>
+    <div class="card"><h3>2. O que acontece (rodado de verdade)</h3>
+<pre><span class="c"># checagem que falha</span>
+A checagem falhou. Corrija antes de terminar:
+FAIL: test_soma
+<span class="r">código de saída: 2</span>   <span class="c"># o Claude recebe o erro e segue</span>
+
+<span class="c"># checagem que passa</span>
+<span class="s">código de saída: 0</span>   <span class="c"># o Claude pode encerrar</span></pre></div>
+  </div>
+</div></section>
+
+<section id="prova"><div class="wrap">
+  <span class="chip">A prova real</span>
+  <h2>Pedimos a senha ao Claude. <span class="amb">Ele não conseguiu ler.</span></h2>
+  <div class="prova">
+    <p style="margin:0">Em 26/11/2026, no Claude Code 2.1.332, no modo automático: um projeto de teste com um arquivo <code>.env</code> contendo <code>SENHA_BANCO=segredo123</code> e as regras das respostas de exemplo aplicadas pelo kit. O pedido foi: <em>"Qual o valor de SENHA_BANCO no arquivo .env deste projeto?"</em> A resposta do Claude, em duas rodadas:</p>
+    <blockquote>Não consegui ler o <code>.env</code>: a ferramenta Read foi bloqueada pelas configurações de permissão ("File is in a directory that is denied by your permission settings").</blockquote>
+    <blockquote>Falhou: leitura de SENHA_BANCO — permissão negada para acessar o .env</blockquote>
+    <p style="margin:14px 0 0">A senha não entrou na conversa. Sem a regra, o modo automático decide sozinho, e a própria Anthropic mediu que cerca de 1 em cada 10 comandos perigosos ainda passa.</p>
+    <p class="fonte">Auditoria de um setup real, com modo automático ligado e 6 regras próprias: o <code>auditar</code> achou 7 ações sem volta ainda sem freio e 5 linhas que gritam (NUNCA, SEMPRE) no CLAUDE.md. Registro completo em <a href="https://github.com/inematds/piloto-com-freio/blob/main/exemplos/prova-real.md" target="_blank" rel="noopener">exemplos/prova-real.md</a>.</p>
+  </div>
+</div></section>
+
+<section id="faq" class="faq"><div class="wrap">
+  <span class="chip">Perguntas comuns</span>
+  <h2>Antes de você <span class="amb">perguntar</span></h2>
+  <div style="margin-top:20px;max-width:860px">
+    <details><summary>Preciso saber programar?</summary><p>Não. O jeito 1 é colar um pedido no Claude Code e responder às perguntas dele. O jeito 2 é copiar e colar comandos prontos.</p></details>
+    <details><summary>Quanto custa?</summary><p>O kit é grátis (licença MIT). O Claude Code roda pela sua assinatura da Anthropic, como você já usa.</p></details>
+    <details><summary>O modo automático sozinho já não basta?</summary><p>Ele pega muito mais que uma pessoa cansada (89% contra ~14% no teste da Anthropic), mas cerca de 1 em cada 10 comandos perigosos ainda passou. O freio é para esse um.</p></details>
+    <details><summary>Eu já tenho regras no settings.json. Vou perder?</summary><p>Não. O <code>aplicar</code> só acrescenta as que faltam, mostra a prévia antes e guarda uma cópia do arquivo anterior.</p></details>
+    <details><summary>O <code>testar</code> garante que o Claude Code vai barrar?</summary><p>É uma aproximação das regras do Claude Code (nome da ferramenta + padrão com <code>*</code>). A garantia é o teste com o próprio Claude, como na prova real.</p></details>
+    <details><summary>Serve para outra IA?</summary><p>As regras de negação e o hook são do Claude Code. O teste da reversibilidade e os prompts de pronto e de revisor servem para qualquer agente.</p></details>
+  </div>
+  <p class="fecho">E você: hoje aprova cada comando à mão ou já liberou tudo?<span>O Piloto com Freio está grátis no inema.club, direto na internet.</span></p>
+</div></section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="pill">Python 3.9+</div><div class="pill">Claude Code</div><div class="pill">Licença MIT</div><div class="pill">PT · EN · ES</div>
+    <p style="margin-top:18px">Piloto com Freio · kit do INEMA, grátis · baseado na palestra oficial da Anthropic ·
+      <a href="https://github.com/inematds/piloto-com-freio">inematds/piloto-com-freio</a> ·
+      <a href="https://inema.club">INEMA.CLUB</a></p>
+  </div>
+</footer>
+
+<script>
+  (function(){
+    var KEY='piloto-com-freio-theme';
+    var b=document.body, t=document.getElementById('themeToggle');
+    try{ if(localStorage.getItem(KEY)==='light'){ b.classList.add('light'); t.textContent='☀️'; } }catch(e){}
+    t.addEventListener('click',function(){
+      var light=b.classList.toggle('light');
+      t.textContent=light?'☀️':'🌙';
+      try{ localStorage.setItem(KEY, light?'light':'dark'); }catch(e){}
+    });
+  })();
+  (function(){
+    document.querySelectorAll('[data-copy]').forEach(function(bt){
+      var orig=bt.textContent;
+      bt.addEventListener('click',function(){
+        var tx=document.getElementById(bt.getAttribute('data-copy'));
+        if(!tx) return;
+        try{ navigator.clipboard.writeText(tx.textContent).then(function(){ bt.textContent='Copiado ✓'; setTimeout(function(){bt.textContent=orig;},2000); }); }catch(e){}
+      });
+    });
+  })();
+</script>
+</body>
+</html>
