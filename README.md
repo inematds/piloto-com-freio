@@ -89,7 +89,7 @@ Sem `CHECAGEM`, a checagem padrão é `python3 -m unittest discover -s tests -q`
 | `prompts/` | entrevista de confiança, pronto em 3 itens, revisor separado, orquestrador, advisor |
 | `hooks/conferir-antes-de-parar.sh` | hook Stop: o que tem de rodar sempre não fica só no prompt |
 | `exemplos/` | respostas de exemplo e a prova real |
-| `tests/` | `python3 -m unittest discover -s tests` (7 testes) |
+| `tests/` | `python3 -m unittest discover -s tests` (8 testes) |
 | `guia/` | o guia em PT, EN e ES (GitHub Pages) |
 
 ## O processo, do início ao fim

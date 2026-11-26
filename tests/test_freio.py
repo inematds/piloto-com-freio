@@ -80,6 +80,12 @@ class Fluxo(unittest.TestCase):
         self.assertIn("/doctor prompt-audit", out)
         self.assertIn("FALTA", out)
 
+    def test_projeto_inexistente(self):
+        with self.assertRaises(SystemExit) as c:
+            roda("aplicar", "--projeto", str(self.tmp / "nao-existe"), "--sim")
+        self.assertIn("não existe", str(c.exception))
+        self.assertFalse((self.tmp / "nao-existe").exists())
+
     def test_prompts(self):
         for nome in ("pronto", "revisor", "orquestrador", "entrevista", "advisor"):
             cod, out = roda("prompt", nome)

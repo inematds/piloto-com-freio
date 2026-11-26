@@ -172,7 +172,7 @@ def cmd_auditar(a) -> int:
             if GRITOS.search(linha):
                 total += 1
                 if len(linhas_ex) < 5:
-                    linhas_ex.append(f"  {p.name}:{n}: {linha.strip()[:90]}")
+                    linhas_ex.append(f"  {p}:{n}: {linha.strip()[:90]}")
     print(f"\nLinhas que gritam (IMPORTANTE, NUNCA, !!!): {total}")
     for l in linhas_ex:
         print(l)
@@ -276,6 +276,9 @@ def main(argv=None) -> int:
     s = sub.add_parser("testar"); s.add_argument("chamada"); s.add_argument("--projeto", type=Path); s.add_argument("--regras", nargs="*"); s.set_defaults(f=cmd_testar)
     s = sub.add_parser("prompt"); s.add_argument("nome"); s.set_defaults(f=cmd_prompt)
     a = ap.parse_args(argv)
+    proj = getattr(a, "projeto", None)
+    if proj is not None and not proj.is_dir():
+        raise SystemExit(f"erro: a pasta do projeto não existe: {proj} (confira o caminho em --projeto)")
     return a.f(a)
 
 
