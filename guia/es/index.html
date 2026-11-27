@@ -141,9 +141,8 @@
   .faq details p{color:var(--mut);margin:.6em 0 0}
   .fecho{margin-top:28px;font:700 clamp(1.15rem,2.4vw,1.45rem)/1.35 Sora,sans-serif;max-width:60ch}
   .fecho span{display:block;font:400 1rem/1.6 Inter,sans-serif;color:var(--mut);margin-top:.5em}
-  .videobox{aspect-ratio:16/9;max-width:860px;border:1px dashed var(--line);border-radius:16px;background:var(--card);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;text-align:center;padding:20px}
-  .videobox b{font:800 1.4rem Sora,sans-serif}
-  .videobox span{color:var(--mut);font-size:.95rem;max-width:46ch}
+  .videobox{aspect-ratio:16/9;max-width:860px;border:1px solid var(--line);border-radius:16px;background:var(--card);overflow:hidden}
+  .videobox iframe{display:block;width:100%;height:100%;border:0}
 </style>
 </head>
 <body>
@@ -262,8 +261,12 @@
 <section id="video"><div class="wrap">
   <span class="chip">Video</span>
   <h2>Entiéndelo en pocos minutos</h2>
-  <!-- VIDEO: entra o explicavideo do projeto quando publicado -->
-  <div class="videobox" style="margin-top:18px"><b>🎬 Video próximamente</b><span>El video explicativo de Piloto com Freio está en producción y aparecerá aquí cuando se publique. Mientras tanto, el paso a paso está justo abajo.</span></div>
+  <div class="videobox" style="margin-top:18px">
+    <iframe src="https://www.youtube-nocookie.com/embed/Ld7K4vH0rAQ" title="Mira el video de Piloto com Freio en portugués"
+      loading="lazy" referrerpolicy="strict-origin-when-cross-origin"
+      allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+  </div>
+  <a class="btn ghost" style="margin-top:12px" href="https://www.youtube.com/watch?v=Ld7K4vH0rAQ" target="_blank" rel="noopener">Ver en YouTube (en portugués)</a>
 </div></section>
 
 <section id="comecar"><div class="wrap">
